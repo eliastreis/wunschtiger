@@ -1,32 +1,31 @@
 # Wunschtiger
 
-Kunstprojekt-Website. Sammelt Wünsche von verschiedenen Skulptur-Standorten und macht sie öffentlich sichtbar.
+Webseite zum partizipativen Kunstprojekt von Amrei Treis. Wünsche werden über die analogen Wunschtiger-Skulpturen gesammelt und auf dieser Seite öffentlich sichtbar gemacht.
+
+## Datenquelle
+
+Wünsche werden live aus einem Google Sheet gelesen:
+https://docs.google.com/spreadsheets/d/1uU3sqnia6w_WzVVFAb3GSyq1S_P4w5-6SlpQSriTFSw/edit
+
+Spalten: `wunsch | kategorie | ort | datum`
+
+Kategorien (müssen exakt so geschrieben werden): `Innerer Frieden`, `Beziehungen`, `Familie`, `Gesundheit`, `Beruf & Kunst`, `Gesellschaft`, `Sonstiges`
+
+Datumsformat: `YYYY-MM-DD` (z.B. `2026-04-15`)
+
+Neue Wünsche im Sheet eintragen → nach max. 1 Min im Browser sichtbar (cache: no-store).
 
 ## Lokal anschauen
 
-Doppelklick auf `index.html` reicht. (Falls Browser blockt: `python -m http.server` im Ordner starten und `localhost:8000` öffnen.)
-
-## Inhalt pflegen (für Lisa)
-
-Wünsche stehen in `wishes.csv`. Spalten: `wunsch, kategorie, ort, datum`.
-
-**Variante A — direkt in der CSV (einfach):**
-1. `wishes.csv` in Excel oder einem Texteditor öffnen
-2. Zeile anhängen, speichern, im Browser neu laden
-
-**Variante B — über Google Sheet (komfortabler):**
-1. Google Sheet erstellen mit Spalten `wunsch, kategorie, ort, datum`
-2. Datei → Im Web veröffentlichen → als CSV
-3. Veröffentlichungs-Link in `script.js` bei `DATA_URL` eintragen
+`index.html` per Doppelklick öffnen. Falls Browser CORS blockt: `python -m http.server` im Ordner starten und `localhost:8000` öffnen.
 
 ## Deployment
 
-Cloudflare Pages → Connect to Git → Repo wählen → Framework: **None** → Build command: leer → Output: `/` → Deploy.
-
-Bei jedem `git push` wird automatisch neu deployed.
+Cloudflare Pages → Connect to Git → `wunschtiger` Repo → Framework: **None**, Build command: leer, Output: `/` → Deploy. Auto-Deploy bei jedem Push.
 
 ## Anpassen
 
-- **Farben & Schrift:** `styles.css` ganz oben unter `:root`
-- **Kategorien-Reihenfolge:** `script.js`, Konstante `CATEGORY_ORDER`
-- **Texte (Titel, Intro, Footer):** `index.html`
+- **Künstlerin-Bio, Foto, Kontakt:** `index.html`, Sektion `<section id="artist">`
+- **Farben:** `tailwind.config` oben im HTML, `museum.*`
+- **Kategorien (Farbe/Icon):** JS-Konstante `CATEGORIES`
+- **Sheet-URL austauschen:** JS-Konstante `CSV_URL`

@@ -1,52 +1,824 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wunschtiger — Kollektive Wünsche</title>
-  <meta name="description" content="An verschiedenen Orten stehen Skulpturen, in die Menschen ihre Wünsche werfen können. Die Wünsche werden hier gesammelt und sichtbar gemacht." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wunschtiger — Ein kollektives Archiv</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Crimson Pro & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        museum: {
+                            bg: '#faf7f2',
+                            card: '#ffffff',
+                            text: '#2c2a29',
+                            muted: '#6d6965',
+                            accent: '#c85a32',
+                            accentHover: '#b14923',
+                            border: '#e6dfd5'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Crimson Pro"', 'Georgia', 'serif'],
+                        sans: ['"Inter"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #faf7f2; color: #2c2a29; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .fade-in { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #faf7f2; }
+        ::-webkit-scrollbar-thumb { background: #e6dfd5; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c85a32; }
+        .sticky-nav { transition: all 0.3s ease; }
+        .sticky-nav.scrolled { background-color: rgba(250, 247, 242, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid #e6dfd5; box-shadow: 0 4px 20px rgba(44, 42, 41, 0.03); }
+        .mindmap-node { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .mindmap-node:hover { transform: scale(1.08); filter: drop-shadow(0 10px 15px rgba(200, 90, 50, 0.15)); }
+        #particleCanvas { pointer-events: none; }
+    </style>
 </head>
-<body>
-  <header class="hero">
-    <div class="hero-inner">
-      <p class="eyebrow">Kollektive Wünsche</p>
-      <h1>Wunschtiger</h1>
-      <p class="lede">
-        An verschiedenen Orten stehen Skulpturen, in die Menschen ihre Wünsche werfen können —
-        wie ein Wunschbrunnen. Die Wünsche werden hier gesammelt und sichtbar gemacht.
-        Eine Art kollektives Träumen: Was wünschen sich Menschen eigentlich?
-        Und was sagt das darüber, wie wir leben wollen?
-      </p>
-    </div>
-  </header>
+<body class="antialiased selection:bg-museum-accent/20 selection:text-museum-accent">
 
-  <main>
-    <section class="filters" aria-label="Kategorien filtern">
-      <div class="filters-inner">
-        <button class="chip active" data-category="alle">Alle</button>
-        <!-- Kategorien werden dynamisch eingefügt -->
-      </div>
+    <!-- Navigation / Header -->
+    <header class="w-full py-6 px-6 md:px-12 flex justify-between items-center border-b border-museum-border/60">
+        <div class="flex items-center gap-3">
+            <svg class="w-8 h-8 text-museum-accent" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 50 C20 30, 80 30, 80 50 C80 70, 20 70, 20 50 Z" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                <path d="M35 50 C35 42, 65 42, 65 50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                <path d="M45 40 L50 25 L55 40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                <path d="M30 65 L20 80" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                <path d="M70 65 L80 80" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <span class="font-sans font-medium tracking-widest text-sm uppercase">Kunstprojekt Wunschtiger</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-8 text-sm uppercase tracking-wider font-medium text-museum-muted">
+            <a href="#archiv" class="hover:text-museum-accent transition-colors">Das Archiv</a>
+            <a href="#vision" class="hover:text-museum-accent transition-colors">Konzept</a>
+            <a href="#einwurf" class="hover:text-museum-accent transition-colors">Wunsch Einwerfen</a>
+            <a href="#artist" class="hover:text-museum-accent transition-colors">Künstlerin</a>
+        </nav>
+        <button onclick="openWishModal()" class="px-5 py-2.5 bg-museum-accent text-white rounded-full text-xs uppercase tracking-widest font-semibold hover:bg-museum-accentHover shadow-md shadow-museum-accent/10 transition-all transform hover:-translate-y-0.5">
+            <i class="fa-solid fa-plus mr-1.5"></i> Wunsch einwerfen
+        </button>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="max-w-6xl mx-auto px-6 pt-16 pb-12 md:py-24 text-center">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-museum-accent/10 rounded-full text-museum-accent text-xs uppercase tracking-widest font-semibold mb-6 animate-pulse">
+            <span class="w-2 h-2 rounded-full bg-museum-accent"></span> Kollektives Träumen — Open Call
+        </div>
+        <h1 class="font-serif text-5xl md:text-8xl font-normal tracking-tight text-museum-text mb-4">
+            Wunschtiger
+        </h1>
+        <p class="font-serif italic text-lg md:text-2xl text-museum-muted max-w-2xl mx-auto font-light mb-10">
+            »Was sagen unsere intimsten Wünsche über die Gesellschaft aus, in der wir leben?«
+        </p>
+
+        <div class="max-w-3xl mx-auto text-left border-l-2 border-museum-accent/40 pl-6 md:pl-10 py-2 mb-16">
+            <p class="font-sans text-base md:text-lg text-museum-text leading-relaxed font-light mb-4">
+                Das Kunstprojekt <strong>„Wunschtiger“</strong> ist ein analog-digitaler Resonanzraum für kollektive Sehnsüchte. Im öffentlichen Stadtraum aufgestellte, skulpturale Tiger-Wunschbrunnen fangen die handgeschriebenen Gedanken von Passant:innen ein.
+            </p>
+            <p class="font-sans text-base md:text-lg text-museum-text leading-relaxed font-light">
+                Diese Plattform digitalisiert, kategorisiert und spiegelt diese vermeintlich banalen Alltagswünsche wider. Sie ist Archiv, soziologische Kartierung und Spiegel zugleich — ein lebendiges Plädoyer für ein radikales, gemeinsames Träumen in krisengeschüttelten Zeiten.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-4xl mx-auto bg-museum-card border border-museum-border/60 rounded-2xl p-6 shadow-sm">
+            <div class="p-4 border-r border-museum-border/40 last:border-0">
+                <div class="text-3xl md:text-4xl font-serif text-museum-accent font-medium" id="stat-total">0</div>
+                <div class="text-xs uppercase tracking-wider text-museum-muted mt-1">Gesammelte Wünsche</div>
+            </div>
+            <div class="p-4 border-r border-museum-border/40 last:border-0">
+                <div class="text-3xl md:text-4xl font-serif text-museum-text font-medium" id="stat-locations">0</div>
+                <div class="text-xs uppercase tracking-wider text-museum-muted mt-1">Standorte / Städte</div>
+            </div>
+            <div class="p-4 border-r border-museum-border/40 last:border-0">
+                <div class="text-3xl md:text-4xl font-serif text-museum-text font-medium" id="stat-top-category">-</div>
+                <div class="text-xs uppercase tracking-wider text-museum-muted mt-1">Häufigster Fokus</div>
+            </div>
+            <div class="p-4 last:border-0">
+                <div class="text-3xl md:text-4xl font-serif text-museum-text font-medium" id="stat-latest-date">-</div>
+                <div class="text-xs uppercase tracking-wider text-museum-muted mt-1">Letzter Einwurf</div>
+            </div>
+        </div>
     </section>
 
-    <section class="wishes" aria-live="polite">
-      <div class="wishes-grid" id="wishes-grid">
-        <p class="loading">Wünsche werden geladen…</p>
-      </div>
+    <!-- Perspektiven & Hauptcontainer -->
+    <section id="archiv" class="border-t border-museum-border max-w-7xl mx-auto px-6 py-12">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            <div>
+                <h2 class="font-serif text-2xl md:text-3xl font-medium">Das kollektive Register</h2>
+                <p class="text-sm text-museum-muted mt-1">Betrachte die Träume aus drei unterschiedlichen Perspektiven.</p>
+            </div>
+            <div class="inline-flex bg-museum-border/40 p-1.5 rounded-full self-start md:self-auto">
+                <button onclick="switchView('grid')" id="btn-view-grid" class="view-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition-all bg-museum-accent text-white shadow-sm">
+                    <i class="fa-solid fa-grip-vertical mr-1.5"></i> Archiv-Raster
+                </button>
+                <button onclick="switchView('mindmap')" id="btn-view-mindmap" class="view-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition-all text-museum-muted hover:text-museum-text">
+                    <i class="fa-solid fa-circle-nodes mr-1.5"></i> Panorama (Mindmap)
+                </button>
+                <button onclick="switchView('spiegel')" id="btn-view-spiegel" class="view-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition-all text-museum-muted hover:text-museum-text">
+                    <i class="fa-solid fa-chart-simple mr-1.5"></i> Der Spiegel (Daten)
+                </button>
+            </div>
+        </div>
+
+        <div id="sticky-filter-container" class="sticky-nav top-0 z-30 py-4 -mx-6 px-6 mb-8">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center justify-between bg-museum-card/50 backdrop-blur-md p-4 rounded-2xl border border-museum-border/40">
+                <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none max-w-full" id="categories-container"></div>
+                <div class="relative min-w-[260px] w-full md:w-auto">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-museum-muted">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Wünsche, Orte durchsuchen..."
+                           class="w-full pl-10 pr-4 py-2 bg-museum-bg text-sm rounded-full border border-museum-border hover:border-museum-accent/40 focus:border-museum-accent focus:outline-none focus:ring-1 focus:ring-museum-accent transition-colors placeholder:text-museum-muted/70">
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid -->
+        <div id="view-grid" class="view-content">
+            <div id="wishes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div id="no-results" class="hidden text-center py-20">
+                <i class="fa-solid fa-feather-pointed text-4xl text-museum-border mb-4"></i>
+                <h3 class="font-serif text-xl font-medium text-museum-text">Keine Wünsche gefunden</h3>
+                <p class="text-sm text-museum-muted mt-1">Versuche es mit einem anderen Suchbegriff oder Filter.</p>
+            </div>
+        </div>
+
+        <!-- Mindmap -->
+        <div id="view-mindmap" class="view-content hidden">
+            <div class="bg-museum-card rounded-2xl border border-museum-border/60 p-6 md:p-10 shadow-sm relative overflow-hidden">
+                <div class="max-w-2xl mb-8 relative z-10">
+                    <h3 class="font-serif text-xl md:text-2xl font-medium text-museum-text">Verbindungen des kollektiven Geistes</h3>
+                    <p class="text-sm text-museum-muted mt-1">Klicke auf ein Themenfeld, um die energetischen Zentren unserer Sehnsüchte zu erkunden.</p>
+                </div>
+                <div class="w-full h-[450px] md:h-[550px] relative border border-museum-border/40 bg-museum-bg/40 rounded-xl overflow-hidden">
+                    <div id="mindmap-tip" class="absolute top-4 left-4 bg-museum-accent/10 border border-museum-accent/20 text-museum-accent px-3 py-1.5 rounded-lg text-xs font-semibold z-10 transition-opacity">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Interaktiv: Hover & Klick auf die Cluster
+                    </div>
+                    <svg id="mindmap-svg" class="w-full h-full" viewBox="0 0 800 500">
+                        <g id="mindmap-lines"></g>
+                        <g id="mindmap-nodes"></g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spiegel -->
+        <div id="view-spiegel" class="view-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-museum-card rounded-2xl border border-museum-border/60 p-6 md:p-8 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs uppercase tracking-widest font-semibold text-museum-accent">Bewerbungs-Exzerpt</span>
+                        <h3 class="font-serif text-2xl font-normal text-museum-text mt-2 mb-4">Das Daten-Dilemma der Träume</h3>
+                        <p class="text-sm text-museum-text leading-relaxed font-light mb-4">
+                            Im Kontext des Open Calls »Kollektives Träumen« zeigt diese Auswertung eine klare These: <strong>Unsere intimsten Wünsche sind tief politisch.</strong>
+                        </p>
+                        <p class="text-sm text-museum-muted leading-relaxed font-light">
+                            Während uns das neoliberale Narrativ einredet, persönlicher Erfolg oder materielle Güter stünden im Zentrum, zeigt die Realität der Wunschtiger ein anderes Bild. Die drängendsten Wünsche drehen sich fast ausschließlich um immaterielle Güter: Beziehung, Gesundheit und sozialen Frieden. Sie sind ein stiller Protest gegen die Atomisierung der Gesellschaft.
+                        </p>
+                    </div>
+                    <div class="pt-6 border-t border-museum-border/60 mt-6">
+                        <p class="text-xs italic text-museum-muted">Aus dem Begleit-Manifest der Künstlerin</p>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-museum-card rounded-2xl border border-museum-border/60 p-6 md:p-8 shadow-sm">
+                    <h3 class="font-serif text-xl font-medium text-museum-text mb-6">Verteilung nach Kategorien</h3>
+                    <div class="space-y-5" id="stats-chart-container"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-museum-border/40 text-center">
+                        <div class="p-3 bg-museum-bg rounded-xl">
+                            <span class="block text-xl font-serif text-museum-accent font-semibold" id="stat-main-focus">-</span>
+                            <span class="text-xxs uppercase tracking-wider text-museum-muted">Hauptantriebskraft</span>
+                        </div>
+                        <div class="p-3 bg-museum-bg rounded-xl">
+                            <span class="block text-xl font-serif text-museum-text font-semibold" id="stat-avg-length">-</span>
+                            <span class="text-xxs uppercase tracking-wider text-museum-muted">Ø Zeichenlänge</span>
+                        </div>
+                        <div class="p-3 bg-museum-bg rounded-xl">
+                            <span class="block text-xl font-serif text-museum-text font-semibold" id="stat-entropy">-</span>
+                            <span class="text-xxs uppercase tracking-wider text-museum-muted">Themen-Vielfalt</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
-  </main>
 
-  <footer>
-    <div class="footer-inner">
-      <p class="footer-title">Wunschtiger</p>
-      <p class="footer-meta">Ein Kunstprojekt von <span id="artist-name">Amrei Treis</span></p>
-      <p class="footer-meta footer-count"><span id="count">0</span> Wünsche bisher gesammelt</p>
+    <!-- Vision -->
+    <section id="vision" class="bg-museum-card border-y border-museum-border/60 py-16 md:py-24">
+        <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+                <span class="text-xs uppercase tracking-widest font-semibold text-museum-accent">Der Konzeptrahmen</span>
+                <h2 class="font-serif text-3xl md:text-5xl font-normal text-museum-text mt-2 mb-6">
+                    Wünsche als mikroskopische Realitäten
+                </h2>
+                <div class="space-y-4 font-sans text-sm md:text-base text-museum-muted font-light leading-relaxed">
+                    <p>
+                        Ein einzelner Wunsch auf einem kleinen Zettel wirkt unscheinbar. Doch wirft man Tausende dieser Wünsche zusammen, entsteht ein monumentales Stimmungsbild unserer Gegenwart.
+                    </p>
+                    <p>
+                        Die Skulpturen – die „Wunschtiger“ – brechen die Sterilität des öffentlichen Raums auf. Sie fungieren als physische Briefkästen des Unterbewusstseins. Auf dieser Webseite fließen die analogen Bruchstücke in Echtzeit zusammen, werden digital lesbar und damit wissenschaftlich wie künstlerisch analysierbar.
+                    </p>
+                    <p class="italic text-museum-text font-serif">
+                        »Indem wir das Unsagbare sichtbar machen, schaffen wir einen neuen Raum des kollektiven Verständnisses.«
+                    </p>
+                </div>
+            </div>
+            <div class="relative flex justify-center items-center p-6 bg-museum-bg rounded-3xl border border-museum-border/50">
+                <div class="absolute inset-0 bg-radial-gradient from-white to-transparent opacity-50 pointer-events-none"></div>
+                <svg class="w-full max-w-[320px] h-auto text-museum-accent/80 drop-shadow-xl" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="30" y="160" width="140" height="20" rx="4" fill="#6d6965" opacity="0.15"/>
+                    <rect x="40" y="150" width="120" height="10" rx="2" fill="#6d6965" opacity="0.3"/>
+                    <path d="M60 150 C60 110, 70 80, 100 80 C130 80, 140 110, 140 150 Z" fill="#c85a32" opacity="0.1" stroke="#c85a32" stroke-width="2"/>
+                    <path d="M100 80 C105 50, 135 50, 140 80 C145 110, 115 130, 100 150" stroke="#c85a32" stroke-width="2.5" stroke-linecap="round"/>
+                    <ellipse cx="100" cy="95" rx="35" ry="12" fill="#faf7f2" stroke="#c85a32" stroke-width="2"/>
+                    <circle cx="100" cy="50" r="4" fill="#c85a32" class="animate-bounce" style="animation-duration: 2s;"/>
+                    <circle cx="85" cy="35" r="2" fill="#c85a32" class="animate-bounce" style="animation-duration: 2.5s;"/>
+                    <circle cx="115" cy="30" r="3" fill="#c85a32" class="animate-bounce" style="animation-duration: 1.8s;"/>
+                    <path d="M75 110 Q100 120 125 110" stroke="#c85a32" stroke-width="1.5" stroke-dasharray="3 3"/>
+                    <path d="M70 130 Q100 140 130 130" stroke="#c85a32" stroke-width="1.5" stroke-dasharray="3 3"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Künstlerin -->
+    <section id="artist" class="max-w-5xl mx-auto px-6 py-16 md:py-24">
+        <div class="flex flex-col md:flex-row gap-12 items-center">
+            <div class="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-2 border-museum-accent/30 flex-shrink-0 bg-museum-border">
+                <img src="https://placehold.co/400x400/f5ece3/c85a32?text=Amrei+Treis" alt="Porträt Amrei Treis" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500">
+            </div>
+            <div class="flex-grow">
+                <span class="text-xs uppercase tracking-widest font-semibold text-museum-accent">Die Schöpferin</span>
+                <h2 class="font-serif text-3xl font-normal text-museum-text mt-2 mb-4">Amrei Treis</h2>
+                <p class="text-sm uppercase tracking-wider text-museum-muted font-medium mb-4">Bildhauerin & partizipative Künstlerin, München</p>
+                <p class="font-sans text-sm md:text-base text-museum-muted font-light leading-relaxed mb-6">
+                    Amrei Treis arbeitet an der Schnittstelle von Skulptur, Installation und partizipativer Kunst. Ihre Arbeiten fragen, wie sich gesellschaftliche Stimmungen in greifbare Formen übersetzen lassen — und wie der öffentliche Raum zum Ort gemeinsamen Nachdenkens werden kann. Das Projekt »Wunschtiger« begann mit einer einzelnen Skulptur auf einer Münchner Gruppenausstellung. Im Rahmen des Open Calls »Kollektives Träumen« soll es um weitere Standorte erweitert werden.
+                </p>
+                <div class="flex gap-4 flex-wrap">
+                    <a href="mailto:kontakt@wunschtiger.art" class="inline-flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-museum-accent hover:text-museum-accentHover transition-colors">
+                        <i class="fa-regular fa-envelope"></i> Kontakt aufnehmen
+                    </a>
+                    <span class="text-museum-border">|</span>
+                    <a href="https://instagram.com/amrei.treis" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-museum-muted hover:text-museum-text transition-colors">
+                        <i class="fa-brands fa-instagram"></i> @amrei.treis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-museum-text text-museum-bg py-16 px-6 border-t border-museum-border/20">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            <div>
+                <div class="flex items-center gap-3 text-museum-bg mb-4">
+                    <svg class="w-6 h-6 text-museum-accent" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 50 C20 30, 80 30, 80 50 C80 70, 20 70, 20 50 Z" stroke="currentColor" stroke-width="4"/>
+                    </svg>
+                    <span class="font-sans font-medium tracking-widest text-xs uppercase text-white">Projekt Wunschtiger</span>
+                </div>
+                <p class="text-xs text-museum-muted/80 max-w-sm font-light">
+                    Ein interdisziplinäres, partizipatives Kunstwerk zur Katalogisierung gesellschaftlicher Stimmungsbilder.
+                </p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-8 text-xs uppercase tracking-wider text-museum-muted font-light">
+                <a href="#archiv" class="hover:text-white transition-colors">Archiv</a>
+                <a href="#vision" class="hover:text-white transition-colors">Das Konzept</a>
+                <a href="#artist" class="hover:text-white transition-colors">Die Künstlerin</a>
+                <a href="#" class="hover:text-white transition-colors">Impressum & Datenschutz</a>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto border-t border-museum-border/10 mt-12 pt-6 flex flex-col sm:flex-row justify-between text-xxs text-museum-muted/60">
+            <p>&copy; 2026 Amrei Treis. Alle Rechte vorbehalten.</p>
+            <p class="mt-2 sm:mt-0">Digitale Repräsentanz für den Open Call »Kollektives Träumen«.</p>
+        </div>
+    </footer>
+
+    <!-- Modal -->
+    <div id="wishModal" class="fixed inset-0 bg-museum-text/60 backdrop-blur-sm z-50 flex justify-center items-center opacity-0 pointer-events-none transition-all duration-300">
+        <canvas id="particleCanvas" class="absolute inset-0 z-0"></canvas>
+        <div class="bg-museum-bg max-w-lg w-full rounded-3xl border border-museum-border p-8 mx-4 shadow-2xl relative z-10 transform scale-95 transition-all duration-300" id="modalContent">
+            <button onclick="closeWishModal()" class="absolute top-6 right-6 text-museum-muted hover:text-museum-accent transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <span class="text-xxs uppercase tracking-widest font-semibold text-museum-accent block mb-2">Virtuelle Einreichung</span>
+            <h3 class="font-serif text-2xl font-normal text-museum-text mb-4">Einwurf in den Wunschtiger</h3>
+            <form id="wishForm" onsubmit="submitWish(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-museum-muted mb-1.5 font-medium">Dein Wunsch an die Zukunft</label>
+                    <textarea id="form-wunsch" required rows="4" placeholder="„Ich wünsche mir, dass...“"
+                              class="w-full p-4 bg-white text-sm rounded-2xl border border-museum-border focus:border-museum-accent focus:outline-none focus:ring-1 focus:ring-museum-accent transition-all font-serif italic text-museum-text resize-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-museum-muted mb-1.5 font-medium">Kategorie</label>
+                        <select id="form-kategorie" required class="w-full px-4 py-2.5 bg-white text-xs rounded-xl border border-museum-border focus:border-museum-accent focus:outline-none transition-all">
+                            <option value="Innerer Frieden">Innerer Frieden</option>
+                            <option value="Beziehungen">Beziehungen</option>
+                            <option value="Familie">Familie</option>
+                            <option value="Gesundheit">Gesundheit</option>
+                            <option value="Beruf & Kunst">Beruf & Kunst</option>
+                            <option value="Gesellschaft">Gesellschaft</option>
+                            <option value="Sonstiges">Sonstiges</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-museum-muted mb-1.5 font-medium">Ort / Herkunft</label>
+                        <input id="form-ort" type="text" required placeholder="z.B. München"
+                               class="w-full px-4 py-2.5 bg-white text-xs rounded-xl border border-museum-border focus:border-museum-accent focus:outline-none transition-all">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 bg-museum-accent hover:bg-museum-accentHover text-white rounded-full font-sans uppercase tracking-widest text-xs font-semibold shadow-md shadow-museum-accent/15 transition-colors mt-6">
+                    Wunsch dem Kollektiv übergeben <i class="fa-solid fa-paper-plane ml-1"></i>
+                </button>
+            </form>
+            <p class="text-[10px] text-center text-museum-muted mt-4 font-light leading-relaxed">
+                Hinweis: Dieser virtuelle Wunsch wird nur in dieser Browser-Sitzung gespeichert. Echte Einreichungen erfolgen ausschließlich über die analogen Wunschtiger im Stadtraum.
+            </p>
+        </div>
     </div>
-  </footer>
 
-  <script src="script.js"></script>
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-museum-text text-museum-bg px-6 py-4 rounded-2xl border border-museum-border/20 shadow-xl z-50 flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300">
+        <span class="w-8 h-8 rounded-full bg-museum-accent/20 text-museum-accent flex items-center justify-center">
+            <i class="fa-solid fa-heart"></i>
+        </span>
+        <div>
+            <p class="text-xs font-semibold text-white">Wunsch empfangen</p>
+            <p class="text-[10px] text-museum-muted">Dein Wunsch wurde dem Archiv hinzugefügt.</p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  DATENQUELLE
+        //  Google Sheet (öffentlich lesbar). Spalten: wunsch, kategorie, ort, datum
+        //  Sheet bearbeiten: https://docs.google.com/spreadsheets/d/1uU3sqnia6w_WzVVFAb3GSyq1S_P4w5-6SlpQSriTFSw/edit
+        // ============================================================
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/1uU3sqnia6w_WzVVFAb3GSyq1S_P4w5-6SlpQSriTFSw/gviz/tq?tqx=out:csv';
+
+        // Fallback-Daten, falls Sheet leer oder nicht erreichbar
+        const DEFAULT_WISHES_CSV = `wunsch,kategorie,ort,datum
+"Innerer Frieden","Innerer Frieden","München","2026-04-15"
+"Dass meine Familie gesund bleibt","Gesundheit","München","2026-04-15"
+"Mehr Flow im Alltag","Innerer Frieden","München","2026-04-15"
+"Eine ehrliche Beziehung","Beziehungen","München","2026-04-15"
+"Erfolg mit meiner Kunst","Beruf & Kunst","München","2026-04-15"
+"Zufriedenheit mit dem Weg, den ich gehe","Beruf & Kunst","München","2026-04-15"
+"Gute Freundschaften, die mich tragen","Beziehungen","München","2026-04-15"
+"Mut, Neues zu wagen","Innerer Frieden","München","2026-04-15"
+"Dass meine Oma noch viele Jahre hat","Familie","München","2026-04-15"
+"Frieden in der Welt","Gesellschaft","München","2026-04-15"
+"Eine bezahlbare Wohnung in der Stadt","Sonstiges","München","2026-04-15"
+"Mehr Zeit für mich selbst","Innerer Frieden","München","2026-04-15"
+"Liebe finden, die bleibt","Beziehungen","München","2026-04-15"
+"Dass mein Bruder seinen Weg findet","Familie","München","2026-04-15"
+"Weniger Angst vor der Zukunft","Innerer Frieden","München","2026-04-15"
+"Endlich wieder durchschlafen können","Gesundheit","München","2026-04-15"
+"Eine Gesellschaft, die zuhört","Gesellschaft","München","2026-04-15"
+"Dass meine Mutter glücklich ist","Familie","München","2026-04-15"`;
+
+        const CATEGORIES = {
+            "Alle":            { color: "#c85a32", icon: "fa-asterisk" },
+            "Innerer Frieden": { color: "#4f772d", icon: "fa-wind" },
+            "Beziehungen":     { color: "#9e2a2b", icon: "fa-heart" },
+            "Familie":         { color: "#3d5a80", icon: "fa-people-roof" },
+            "Gesundheit":      { color: "#1a759f", icon: "fa-notes-medical" },
+            "Beruf & Kunst":   { color: "#d68c45", icon: "fa-palette" },
+            "Gesellschaft":    { color: "#6f5e76", icon: "fa-users" },
+            "Sonstiges":       { color: "#6d6965", icon: "fa-bezier-curve" }
+        };
+
+        let wishes = [];
+        let currentFilter = "Alle";
+        let currentView = "grid";
+
+        window.onload = function() {
+            initApp();
+            window.addEventListener('scroll', () => {
+                const nav = document.getElementById('sticky-filter-container');
+                if (window.scrollY > 250) nav.classList.add('scrolled');
+                else nav.classList.remove('scrolled');
+            });
+        };
+
+        async function initApp() {
+            renderCategoryFilters();
+            await fetchWishes();
+            applyFilters();
+            initVirtualWellCanvas();
+        }
+
+        async function fetchWishes() {
+            try {
+                const response = await fetch(CSV_URL, { cache: 'no-store' });
+                if (!response.ok) throw new Error("Sheet-Fetch fehlgeschlagen: " + response.status);
+                const csvText = await response.text();
+                const parsed = parseCSV(csvText);
+                if (parsed.length === 0) {
+                    console.warn("Google Sheet ist leer — verwende Fallback.");
+                    wishes = parseCSV(DEFAULT_WISHES_CSV);
+                } else {
+                    wishes = parsed;
+                    console.log(`Erfolgreich ${wishes.length} Wünsche aus dem Google Sheet geladen.`);
+                }
+            } catch (error) {
+                console.warn("Sheet nicht erreichbar — verwende Fallback.", error);
+                wishes = parseCSV(DEFAULT_WISHES_CSV);
+            }
+            updateStatistics();
+        }
+
+        function parseCSV(text) {
+            const lines = text.replace(/\r/g, '').split('\n');
+            const result = [];
+            if (lines.length < 2) return result;
+            const headers = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const row = parseCSVLine(line);
+                if (row.length < headers.length) continue;
+                const obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = (row[index] || '').trim();
+                });
+                if (obj.wunsch) result.push(obj);
+            }
+            return result;
+        }
+
+        function parseCSVLine(line) {
+            const out = [];
+            let cur = "";
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const c = line[i];
+                if (c === '"') {
+                    if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+                    else inQuotes = !inQuotes;
+                } else if (c === ',' && !inQuotes) {
+                    out.push(cur); cur = "";
+                } else {
+                    cur += c;
+                }
+            }
+            out.push(cur);
+            return out;
+        }
+
+        function updateStatistics() {
+            document.getElementById('stat-total').innerText = wishes.length;
+            const locations = [...new Set(wishes.map(w => w.ort))].filter(Boolean);
+            document.getElementById('stat-locations').innerText = locations.length;
+
+            const catCounts = {};
+            let maxCount = 0;
+            let topCat = "-";
+            let totalLength = 0;
+
+            wishes.forEach(w => {
+                catCounts[w.kategorie] = (catCounts[w.kategorie] || 0) + 1;
+                if (catCounts[w.kategorie] > maxCount) {
+                    maxCount = catCounts[w.kategorie];
+                    topCat = w.kategorie;
+                }
+                totalLength += (w.wunsch || '').length;
+            });
+
+            document.getElementById('stat-top-category').innerText = topCat;
+            document.getElementById('stat-main-focus').innerText = topCat;
+            const avgLen = wishes.length ? Math.round(totalLength / wishes.length) : 0;
+            document.getElementById('stat-avg-length').innerText = `${avgLen} Zeichen`;
+            const uniqueCats = [...new Set(wishes.map(w => w.kategorie))].filter(Boolean).length;
+            document.getElementById('stat-entropy').innerText = `${uniqueCats} Felder`;
+
+            if (wishes.length > 0) {
+                const dates = wishes.map(w => new Date(w.datum)).filter(d => !isNaN(d));
+                if (dates.length > 0) {
+                    const latest = new Date(Math.max(...dates));
+                    document.getElementById('stat-latest-date').innerText = latest.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                }
+            }
+            renderSpiegelView(catCounts);
+        }
+
+        function renderCategoryFilters() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+            Object.keys(CATEGORIES).forEach(cat => {
+                const button = document.createElement('button');
+                button.id = `btn-cat-${cat.replace(/\s/g, '-')}`;
+                button.onclick = () => selectCategory(cat);
+                const isSelected = cat === currentFilter;
+                button.className = `px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                    isSelected
+                        ? 'bg-museum-accent text-white shadow-sm shadow-museum-accent/20'
+                        : 'bg-museum-bg text-museum-muted hover:text-museum-text hover:bg-museum-border/30'
+                }`;
+                button.innerHTML = `<i class="fa-solid ${CATEGORIES[cat].icon} text-[10px]"></i> ${cat}`;
+                container.appendChild(button);
+            });
+        }
+
+        function selectCategory(cat) {
+            currentFilter = cat;
+            renderCategoryFilters();
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = wishes.filter(w => {
+                const matchesCat = currentFilter === "Alle" || w.kategorie === currentFilter;
+                const matchesSearch = (w.wunsch || '').toLowerCase().includes(searchVal) ||
+                                      (w.ort || '').toLowerCase().includes(searchVal) ||
+                                      (w.kategorie || '').toLowerCase().includes(searchVal);
+                return matchesCat && matchesSearch;
+            });
+            renderGrid(filtered);
+            if (currentView === "mindmap") highlightMindmapCategory(currentFilter);
+        }
+
+        function renderGrid(data) {
+            const grid = document.getElementById('wishes-grid');
+            const noResults = document.getElementById('no-results');
+            grid.innerHTML = '';
+            if (data.length === 0) {
+                noResults.classList.remove('hidden');
+                grid.classList.add('hidden');
+                return;
+            }
+            noResults.classList.add('hidden');
+            grid.classList.remove('hidden');
+
+            data.forEach((w, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-museum-card border border-museum-border/60 hover:border-museum-accent/40 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-museum-accent/5 transition-all duration-300 fade-in flex flex-col justify-between group relative overflow-hidden";
+                card.style.animationDelay = `${index * 0.04}s`;
+                const catColor = CATEGORIES[w.kategorie]?.color || "#c85a32";
+                card.innerHTML = `
+                    <div class="absolute left-0 top-0 bottom-0 w-1" style="background-color: ${catColor}"></div>
+                    <div>
+                        <span class="font-serif text-5xl text-museum-accent/20 block h-4 select-none pointer-events-none mb-2">“</span>
+                        <p class="font-serif italic text-lg text-museum-text font-light leading-relaxed mb-6 pl-2">${escapeHTML(w.wunsch)}</p>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-museum-border/40 pt-4 text-xxs tracking-wider uppercase text-museum-muted">
+                        <span class="px-2.5 py-1 bg-museum-bg rounded-md text-museum-muted/90 flex items-center gap-1">
+                            <i class="fa-solid ${CATEGORIES[w.kategorie]?.icon || 'fa-tag'} text-[8px]"></i>
+                            ${escapeHTML(w.kategorie || '')}
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <span>${escapeHTML(w.ort || '')}</span>
+                            <span class="text-museum-border">•</span>
+                            <span>${formatDate(w.datum)}</span>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function escapeHTML(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            if (isNaN(date)) return dateStr;
+            return date.toLocaleDateString('de-DE', { month: '2-digit', year: 'numeric' });
+        }
+
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.className = "view-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition-all text-museum-muted hover:text-museum-text";
+            });
+            const activeBtn = document.getElementById(`btn-view-${view}`);
+            activeBtn.className = "view-btn px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition-all bg-museum-accent text-white shadow-sm";
+            document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            if (view === "mindmap") renderMindmap();
+            else if (view === "spiegel") updateStatistics();
+        }
+
+        function renderMindmap() {
+            const nodeGroup = document.getElementById('mindmap-nodes');
+            const lineGroup = document.getElementById('mindmap-lines');
+            nodeGroup.innerHTML = ''; lineGroup.innerHTML = '';
+
+            const centerX = 400, centerY = 250, radius = 170;
+            const categoryList = Object.keys(CATEGORIES).filter(c => c !== "Alle");
+            const nodePositions = {};
+            const centerNode = { x: centerX, y: centerY, label: "WUNSCHTIGER", size: 40, color: "#c85a32" };
+
+            categoryList.forEach((cat, idx) => {
+                const angle = (idx / categoryList.length) * 2 * Math.PI - Math.PI / 2;
+                const nodeX = centerX + radius * Math.cos(angle);
+                const nodeY = centerY + radius * Math.sin(angle);
+                const wishCount = wishes.filter(w => w.kategorie === cat).length;
+                const nodeSize = 18 + Math.min(wishCount * 2, 25);
+                nodePositions[cat] = { x: nodeX, y: nodeY, size: nodeSize, color: CATEGORIES[cat].color };
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", centerX); line.setAttribute("y1", centerY);
+                line.setAttribute("x2", nodeX); line.setAttribute("y2", nodeY);
+                line.setAttribute("stroke", "#e6dfd5"); line.setAttribute("stroke-width", "2");
+                line.setAttribute("stroke-dasharray", "4, 6");
+                lineGroup.appendChild(line);
+
+                const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                dot.setAttribute("cx", centerX + (radius/2) * Math.cos(angle));
+                dot.setAttribute("cy", centerY + (radius/2) * Math.sin(angle));
+                dot.setAttribute("r", "3"); dot.setAttribute("fill", "#c85a32"); dot.setAttribute("opacity", "0.4");
+                lineGroup.appendChild(dot);
+            });
+
+            const cGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            cGroup.setAttribute("class", "cursor-pointer");
+            cGroup.onclick = () => selectCategory("Alle");
+            const cCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            cCircle.setAttribute("cx", centerNode.x); cCircle.setAttribute("cy", centerNode.y);
+            cCircle.setAttribute("r", centerNode.size); cCircle.setAttribute("fill", "#faf7f2");
+            cCircle.setAttribute("stroke", centerNode.color); cCircle.setAttribute("stroke-width", "3");
+            cGroup.appendChild(cCircle);
+            const cText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            cText.setAttribute("x", centerNode.x); cText.setAttribute("y", centerNode.y + 4);
+            cText.setAttribute("text-anchor", "middle"); cText.setAttribute("fill", "#2c2a29");
+            cText.setAttribute("font-size", "10"); cText.setAttribute("font-weight", "bold"); cText.setAttribute("letter-spacing", "2");
+            cText.textContent = centerNode.label;
+            cGroup.appendChild(cText);
+            nodeGroup.appendChild(cGroup);
+
+            categoryList.forEach(cat => {
+                const pos = nodePositions[cat];
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("class", "mindmap-node cursor-pointer");
+                g.setAttribute("id", `map-node-${cat.replace(/\s/g, '-')}`);
+                g.onclick = () => {
+                    selectCategory(cat);
+                    switchView('grid');
+                    document.getElementById('archiv').scrollIntoView();
+                };
+                const pulse = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                pulse.setAttribute("cx", pos.x); pulse.setAttribute("cy", pos.y);
+                pulse.setAttribute("r", pos.size + 6); pulse.setAttribute("fill", pos.color); pulse.setAttribute("opacity", "0.08");
+                g.appendChild(pulse);
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", pos.x); circle.setAttribute("cy", pos.y);
+                circle.setAttribute("r", pos.size); circle.setAttribute("fill", pos.color);
+                g.appendChild(circle);
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", pos.x); text.setAttribute("y", pos.y + pos.size + 16);
+                text.setAttribute("text-anchor", "middle"); text.setAttribute("fill", "#2c2a29");
+                text.setAttribute("font-size", "10"); text.setAttribute("font-weight", "500");
+                text.textContent = cat;
+                g.appendChild(text);
+                const countText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                countText.setAttribute("x", pos.x); countText.setAttribute("y", pos.y + 4);
+                countText.setAttribute("text-anchor", "middle"); countText.setAttribute("fill", "rgba(255,255,255,0.95)");
+                countText.setAttribute("font-size", "11"); countText.setAttribute("font-weight", "600");
+                countText.textContent = `${wishes.filter(w => w.kategorie === cat).length}`;
+                g.appendChild(countText);
+                nodeGroup.appendChild(g);
+            });
+        }
+
+        function highlightMindmapCategory(selectedCat) {
+            const nodes = document.querySelectorAll('.mindmap-node');
+            nodes.forEach(node => node.style.opacity = "0.4");
+            if (selectedCat === "Alle") {
+                nodes.forEach(node => node.style.opacity = "1");
+            } else {
+                const active = document.getElementById(`map-node-${selectedCat.replace(/\s/g, '-')}`);
+                if (active) active.style.opacity = "1";
+            }
+        }
+
+        function renderSpiegelView(counts) {
+            const container = document.getElementById('stats-chart-container');
+            container.innerHTML = '';
+            const total = wishes.length;
+            const sortedCats = Object.keys(CATEGORIES).filter(c => c !== "Alle").sort((a,b) => (counts[b] || 0) - (counts[a] || 0));
+            sortedCats.forEach(cat => {
+                const val = counts[cat] || 0;
+                const percentage = total > 0 ? Math.round((val / total) * 100) : 0;
+                const color = CATEGORIES[cat]?.color || "#c85a32";
+                const row = document.createElement('div');
+                row.className = "space-y-1.5";
+                row.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-medium text-museum-text flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${color}"></span>
+                            ${cat}
+                        </span>
+                        <span class="font-semibold text-museum-accent">${val} ${val === 1 ? 'Wunsch' : 'Wünsche'} (${percentage}%)</span>
+                    </div>
+                    <div class="w-full bg-museum-bg h-2 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-1000" style="width: ${percentage}%; background-color: ${color}"></div>
+                    </div>`;
+                container.appendChild(row);
+            });
+        }
+
+        function openWishModal() {
+            const modal = document.getElementById('wishModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            content.classList.remove('scale-95');
+            startParticleAnimation();
+        }
+        function closeWishModal() {
+            const modal = document.getElementById('wishModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.add('pointer-events-none', 'opacity-0');
+            content.classList.add('scale-95');
+            stopParticleAnimation();
+        }
+        function submitWish(event) {
+            event.preventDefault();
+            const text = document.getElementById('form-wunsch').value;
+            const cat = document.getElementById('form-kategorie').value;
+            const ort = document.getElementById('form-ort').value;
+            const newWish = { wunsch: text, kategorie: cat, ort: ort, datum: new Date().toISOString().split('T')[0] };
+            wishes.unshift(newWish);
+            updateStatistics();
+            applyFilters();
+            document.getElementById('wishForm').reset();
+            closeWishModal();
+            showSuccessToast();
+        }
+        function showSuccessToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0', 'translate-y-20');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-20');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 4000);
+        }
+
+        let canvas, ctx, animationFrameId, particles = [];
+        function initVirtualWellCanvas() {
+            canvas = document.getElementById('particleCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+        function resizeCanvas() {
+            if (canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        }
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 100;
+                this.size = Math.random() * 3 + 1;
+                this.speedY = -(Math.random() * 1.5 + 0.5);
+                this.speedX = Math.random() * 0.8 - 0.4;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = '#c85a32';
+            }
+            update() {
+                this.y += this.speedY; this.x += this.speedX;
+                if (this.y < 0) { this.y = canvas.height + 10; this.x = Math.random() * canvas.width; }
+            }
+            draw() {
+                ctx.save(); ctx.globalAlpha = this.opacity; ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+            }
+        }
+        function startParticleAnimation() {
+            particles = [];
+            for (let i = 0; i < 40; i++) particles.push(new Particle());
+            animate();
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            animationFrameId = requestAnimationFrame(animate);
+        }
+        function stopParticleAnimation() { cancelAnimationFrame(animationFrameId); }
+    </script>
 </body>
 </html>
