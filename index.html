@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wunschtiger — Kollektive Wünsche</title>
+  <meta name="description" content="An verschiedenen Orten stehen Skulpturen, in die Menschen ihre Wünsche werfen können. Die Wünsche werden hier gesammelt und sichtbar gemacht." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Kollektive Wünsche</p>
+      <h1>Wunschtiger</h1>
+      <p class="lede">
+        An verschiedenen Orten stehen Skulpturen, in die Menschen ihre Wünsche werfen können —
+        wie ein Wunschbrunnen. Die Wünsche werden hier gesammelt und sichtbar gemacht.
+        Eine Art kollektives Träumen: Was wünschen sich Menschen eigentlich?
+        Und was sagt das darüber, wie wir leben wollen?
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <section class="filters" aria-label="Kategorien filtern">
+      <div class="filters-inner">
+        <button class="chip active" data-category="alle">Alle</button>
+        <!-- Kategorien werden dynamisch eingefügt -->
+      </div>
+    </section>
+
+    <section class="wishes" aria-live="polite">
+      <div class="wishes-grid" id="wishes-grid">
+        <p class="loading">Wünsche werden geladen…</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p class="footer-title">Wunschtiger</p>
+      <p class="footer-meta">Ein Kunstprojekt von <span id="artist-name">[Dein Name]</span></p>
+      <p class="footer-meta footer-contact"><a href="#" id="artist-link">Instagram / Kontakt</a></p>
+      <p class="footer-meta footer-count"><span id="count">0</span> Wünsche bisher gesammelt</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
